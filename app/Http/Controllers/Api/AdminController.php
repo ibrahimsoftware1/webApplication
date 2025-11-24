@@ -157,4 +157,40 @@ class AdminController extends Controller
 
         return $this->success('User deleted successfully');
     }
+
+    // Remove user from community chat
+    public function removeUserFromCommunity(Request $request, $userId)
+    {
+        $user = User::findOrFail($userId);
+        
+        // Find community chat
+        $communityChat = Conversation::where('name', 'Community Chat')
+            ->where('type', 'group')
+            ->firstOrFail();
+        
+        // Remove user from community chat
+        $communityChat->removeParticipants([$userId]);
+        
+        return $this->success('User removed from community chat successfully');
+    }
+
+    // Delete message from community chat (admin only)
+    public function deleteCommunityMessage($messageId)
+    {
+        $message = Message::findOrFail($messageId);
+        
+        // Verify it's a community chat message
+        $communityChat = Conversation::where('id', $message->conversation_id)
+            ->where('name', 'Community Chat')
+            ->where('type', 'group')
+            ->first();
+        
+        if (!$communityChat) {
+            return $this->error('Message is not from community chat', null, 403);
+        }
+        
+        $message->delete();
+        
+        return $this->success('Message deleted successfully');
+    }
 }
