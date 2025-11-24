@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Chatting\ConversationController;
 use App\Http\Controllers\Api\Chatting\MessageController;
+use App\Http\Controllers\Api\FriendController;
 use App\Http\Controllers\Api\Social\FollowController;
 use App\Http\Controllers\Api\Social\PostController;
 use App\Http\Controllers\Api\UserController;
@@ -105,6 +106,17 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('users')->group(function
         Route::post('/{user}/follow', 'follow');
         Route::delete('/{user}/unfollow', 'unfollow');
         Route::get('/{user}/followers', 'followers');
-        Route::get('/{user}/following', 'following');});
+        Route::get('/{user}/following', 'following');
+    });
+});
 
+// Friends routes
+Route::middleware(['auth:sanctum', 'verified'])->prefix('friends')->controller(FriendController::class)->group(function () {
+    Route::get('/', 'index'); // Get all friends
+    Route::get('/requests', 'requests'); // Get friend requests
+    Route::post('/request', 'sendRequest'); // Send friend request
+    Route::post('/accept/{id}', 'acceptRequest'); // Accept friend request
+    Route::post('/reject/{id}', 'rejectRequest'); // Reject friend request
+    Route::delete('/{id}', 'remove'); // Remove friend or cancel request
+    Route::get('/status/{userId}', 'checkStatus'); // Check friendship status
 });
