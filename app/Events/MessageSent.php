@@ -22,7 +22,7 @@ class MessageSent implements ShouldBroadcastNow
     public $message;
     public function __construct(Message $message)
     {
-        $this->message = $message->load('user');
+        $this->message = $message->load('user', 'attachments');
     }
 
     /**
@@ -43,6 +43,22 @@ class MessageSent implements ShouldBroadcastNow
     }
     public function broadcastWith():array
     {
+        $attachments = [];
+        if ($this->message->attachments) {
+            foreach ($this->message->attachments as $attachment) {
+                $attachments[] = [
+                    'id' => $attachment->id,
+                    'message_id' => $attachment->message_id,
+                    'user_id' => $attachment->user_id,
+                    'file_name' => $attachment->file_name,
+                    'file_type' => $attachment->file_type,
+                    'file_size' => $attachment->file_size,
+                    'file_url' => $attachment->file_url,
+                    'full_url' => $attachment->full_url,
+                ];
+            }
+        }
+        
         $data = [
             'message' => [
                 'id' => $this->message->id,
@@ -58,7 +74,8 @@ class MessageSent implements ShouldBroadcastNow
                     'name' => $this->message->user->name,
                     'email' => $this->message->user->email,
                     'avatar' => $this->message->user->avatar,
-                ] : null
+                ] : null,
+                'attachments' => $attachments
             ]
         ];
         return $data;

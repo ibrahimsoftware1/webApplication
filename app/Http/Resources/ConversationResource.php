@@ -30,7 +30,9 @@ class ConversationResource extends JsonResource
                     return [
                         'id' => $user->id,
                         'name' => $user->name,
-                       'username' => $user->username,
+                        'username' => $user->username,
+                        'avatar' => $user->avatar,
+                        'is_online' => $user->is_online,
                             ];
                    });
                 }),
