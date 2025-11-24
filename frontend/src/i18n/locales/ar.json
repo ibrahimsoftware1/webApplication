@@ -1,0 +1,204 @@
+{
+  "app": {
+    "name": "KOR",
+    "title": "KOR - التواصل الاجتماعي"
+  },
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "نجح",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "close": "إغلاق",
+    "submit": "إرسال",
+    "search": "بحث",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "confirm": "تأكيد",
+    "yes": "نعم",
+    "no": "لا"
+  },
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول إلى حسابك",
+      "email": "عنوان البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "submit": "تسجيل الدخول",
+      "noAccount": "ليس لديك حساب؟",
+      "signUp": "إنشاء حساب",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "rememberMe": "تذكرني"
+    },
+    "register": {
+      "title": "إنشاء حسابك",
+      "name": "الاسم الكامل",
+      "email": "عنوان البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "gender": "الجنس",
+      "selectGender": "اختر الجنس",
+      "male": "ذكر",
+      "female": "أنثى",
+      "submit": "إنشاء حساب",
+      "hasAccount": "لديك حساب بالفعل؟",
+      "signIn": "تسجيل الدخول",
+      "passwordHint": "يجب أن تكون 6 أحرف على الأقل"
+    },
+    "emailVerification": {
+      "title": "📧 تحقق من بريدك الإلكتروني",
+      "message": "لقد أرسلنا رابط التحقق إلى {email}",
+      "instructions": "يرجى التحقق من بريدك الإلكتروني (بما في ذلك مجلد الرسائل غير المرغوب فيها) والنقر على رابط التحقق لتفعيل حسابك.",
+      "resend": "إعادة إرسال بريد التحقق",
+      "noEmail": "لم تستلم البريد؟",
+      "alreadyVerified": "تم التحقق بالفعل؟",
+      "goToLogin": "الذهاب إلى تسجيل الدخول"
+    },
+    "logout": "تسجيل الخروج",
+    "profile": "الملف الشخصي"
+  },
+  "home": {
+    "welcome": "مرحباً بك في KOR",
+    "subtitle": "تواصل وتحدث مع أصدقائك والمجتمع",
+    "getStarted": "ابدأ",
+    "openChat": "فتح الدردشة",
+    "viewFriends": "عرض الأصدقاء",
+    "features": {
+      "chat": {
+        "title": "الدردشة والرسائل",
+        "description": "تواصل مع الأصدقاء وأعضاء المجتمع من خلال المراسلة الفورية. أنشئ محادثات جماعية وابق على اتصال."
+      },
+      "friends": {
+        "title": "الأصدقاء والمجتمع",
+        "description": "قم ببناء شبكتك من خلال إضافة الأصدقاء. استكشف المجتمع وتواصل مع الأشخاص لبدء المحادثات."
+      }
+    }
+  },
+  "chat": {
+    "title": "المحادثات",
+    "noConversations": "لا توجد محادثات بعد. ابدأ محادثة جديدة!",
+    "deleteConversations": "حذف المحادثات",
+    "deleteSelected": "حذف المحدد",
+    "selected": "محدد",
+    "noMessages": "لا توجد رسائل بعد. ابدأ المحادثة! 👋",
+    "typeMessage": "اكتب رسالتك...",
+    "send": "إرسال",
+    "online": "متصل",
+    "offline": "غير متصل",
+    "typing": "{name} يكتب",
+    "conversation": "محادثة",
+    "back": "رجوع"
+  },
+  "community": {
+    "title": "👥 المجتمع",
+    "chat": {
+      "subtitle": "تحدث مع المجتمع",
+      "title": "💬 دردشة المجتمع",
+      "deleteMessages": "حذف الرسائل",
+      "noMessages": "لا توجد رسائل بعد. ابدأ المحادثة!",
+      "chatWithCommunity": "تحدث مع المجتمع"
+    },
+    "users": {
+      "subtitle": "اكتشف وتواصل مع المستخدمين الآخرين",
+      "title": "👥 مستخدمو المجتمع",
+      "noUsers": "لم يتم العثور على مستخدمين",
+      "searchPlaceholder": "ابحث عن المستخدمين بالاسم أو اسم المستخدم أو البريد الإلكتروني..."
+    },
+    "friendRequests": {
+      "title": "طلبات الصداقة",
+      "received": "المستلمة",
+      "sent": "المرسلة",
+      "noRequests": "لا توجد طلبات صداقة",
+      "accept": "قبول",
+      "reject": "رفض",
+      "cancel": "إلغاء"
+    },
+    "myFriends": "👥 أصدقائي",
+    "backToConversations": "← رجوع إلى المحادثات",
+    "myProfile": "👤 ملفي الشخصي",
+    "communityUsers": "مستخدمو المجتمع",
+    "addFriend": "إضافة صديق",
+    "remove": "إزالة"
+  },
+  "friends": {
+    "title": "👥 أصدقائي",
+    "subtitle": "قائمة أصدقائك - انقر للدردشة معهم",
+    "noFriends": "لا توجد أصدقاء بعد",
+    "goToCommunity": "اذهب إلى المجتمع لإضافة أصدقاء!",
+    "startChat": "💬 بدء الدردشة",
+    "loading": "جاري تحميل الأصدقاء...",
+    "backToConversations": "← رجوع إلى المحادثات",
+    "community": "👥 المجتمع",
+    "myProfile": "👤 ملفي الشخصي",
+    "offline": "غير متصل",
+    "online": "متصل"
+  },
+  "profile": {
+    "title": "👤 ملفي الشخصي",
+    "subtitle": "عدل معلوماتك الشخصية",
+    "profileInformation": "معلومات الملف الشخصي",
+    "email": "البريد الإلكتروني",
+    "gender": "الجنس",
+    "bio": "نبذة",
+    "name": "الاسم",
+    "username": "اسم المستخدم",
+    "editProfile": "تعديل الملف الشخصي",
+    "saveChanges": "حفظ التغييرات",
+    "cancel": "إلغاء",
+    "uploadAvatar": "رفع الصورة الشخصية",
+    "removeAvatar": "إزالة الصورة الشخصية",
+    "online": "متصل",
+    "offline": "غير متصل",
+    "chat": "دردشة"
+  },
+  "admin": {
+    "title": "⚙️ لوحة تحكم المشرف",
+    "subtitle": "إدارة المستخدمين ودردشة المجتمع",
+    "backToConversations": "← رجوع إلى المحادثات",
+    "admin": "المشرف",
+    "stats": {
+      "totalUsers": "إجمالي المستخدمين",
+      "totalConversations": "المحادثات",
+      "totalMessages": "إجمالي الرسائل"
+    },
+    "users": {
+      "title": "👥 جميع المستخدمين",
+      "searchPlaceholder": "ابحث عن المستخدمين بالاسم أو البريد الإلكتروني...",
+      "noUsers": "لم يتم العثور على مستخدمين",
+      "delete": "🗑️ حذف",
+      "deleteConfirm": "هل أنت متأكد أنك تريد حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء."
+    },
+    "manageUsers": "إدارة المستخدمين ودردشة المجتمع"
+  },
+  "notFound": {
+    "title": "404",
+    "subtitle": "الصفحة غير موجودة",
+    "message": "الصفحة التي تبحث عنها غير موجودة.",
+    "goHome": "العودة إلى الصفحة الرئيسية"
+  },
+  "validation": {
+    "required": "{field} مطلوب",
+    "email": "عنوان بريد إلكتروني غير صحيح",
+    "min": "{field} يجب أن يكون {min} أحرف على الأقل",
+    "max": "{field} يجب أن يكون {max} أحرف على الأكثر",
+    "passwordMatch": "يجب أن تتطابق كلمات المرور"
+  },
+  "toast": {
+    "loginSuccess": "تم تسجيل الدخول بنجاح!",
+    "loginFailed": "فشل تسجيل الدخول",
+    "registerSuccess": "تم التسجيل بنجاح! يرجى التحقق من بريدك الإلكتروني للتحقق من حسابك.",
+    "registerFailed": "فشل التسجيل",
+    "logoutSuccess": "تم تسجيل الخروج بنجاح",
+    "profileUpdated": "تم تحديث الملف الشخصي بنجاح",
+    "conversationDeleted": "تم حذف المحادثة بنجاح",
+    "conversationsDeleted": "تم حذف {count} محادثة بنجاح",
+    "messageSent": "تم إرسال الرسالة",
+    "friendRequestSent": "تم إرسال طلب الصداقة",
+    "friendRequestAccepted": "تم قبول طلب الصداقة",
+    "friendRequestRejected": "تم رفض طلب الصداقة",
+    "userDeleted": "تم حذف المستخدم بنجاح"
+  }
+}
+
