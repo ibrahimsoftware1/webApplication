@@ -7,12 +7,15 @@ use App\Models\chatting\Message;
 use App\Models\chatting\MessageAttachment;
 use App\Models\chatting\MessageStatus;
 use App\Models\social\Follow;
+use App\Models\Friendship;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\URL;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -59,6 +62,23 @@ class User extends Authenticatable implements MustVerifyEmail
                 return config('app.frontend_url') . '/reset-password?token=' . $token . '&email=' . $user->email;
             });
         });
+
+        // Override email verification notification URL
+        VerifyEmail::createUrlUsing(function ($notifiable) {
+            $id = $notifiable->getKey();
+            $hash = sha1($notifiable->getEmailForVerification());
+            
+            // Try to get URL from request first (works with current request context)
+            // Fallback to APP_URL from config
+            try {
+                $baseUrl = request()->getSchemeAndHttpHost() . request()->getBasePath();
+            } catch (\Exception $e) {
+                $baseUrl = config('app.url', 'http://localhost');
+            }
+            
+            // Generate the verification URL
+            return $baseUrl . '/email/verify/' . $id . '/' . $hash;
+        });
     }
 
     public function messages():HasMany
@@ -101,6 +121,90 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->followers()->where('follower_id', $userId)->exists();
     }
 
+    // Friendship relationships
+    public function sentFriendRequests()
+    {
+        return $this->hasMany(Friendship::class, 'user_id');
+    }
+
+    public function receivedFriendRequests()
+    {
+        return $this->hasMany(Friendship::class, 'friend_id');
+    }
+
+    // Get all friends (accepted friendships)
+    public function getFriendsAttribute()
+    {
+        $friendships = Friendship::where(function ($query) {
+            $query->where('user_id', $this->id)
+                  ->where('status', 'accepted');
+        })->orWhere(function ($query) {
+            $query->where('friend_id', $this->id)
+                  ->where('status', 'accepted');
+        })->get();
+
+        $friendIds = $friendships->map(function ($friendship) {
+            return $friendship->user_id === $this->id 
+                ? $friendship->friend_id 
+                : $friendship->user_id;
+        })->toArray();
+
+        return User::whereIn('id', $friendIds)->get();
+    }
+
+    public function isFriendWith($userId): bool
+    {
+        return Friendship::where(function ($query) use ($userId) {
+            $query->where('user_id', $this->id)
+                  ->where('friend_id', $userId)
+                  ->where('status', 'accepted');
+        })->orWhere(function ($query) use ($userId) {
+            $query->where('user_id', $userId)
+                  ->where('friend_id', $this->id)
+                  ->where('status', 'accepted');
+        })->exists();
+    }
+
+    public function hasPendingRequestTo($userId): bool
+    {
+        return Friendship::where('user_id', $this->id)
+            ->where('friend_id', $userId)
+            ->where('status', 'pending')
+            ->exists();
+    }
+
+    public function hasPendingRequestFrom($userId): bool
+    {
+        return Friendship::where('user_id', $userId)
+            ->where('friend_id', $this->id)
+            ->where('status', 'pending')
+            ->exists();
+    }
+
+    public function getFriendshipStatus($userId): ?string
+    {
+        $friendship = Friendship::where(function ($query) use ($userId) {
+            $query->where('user_id', $this->id)
+                  ->where('friend_id', $userId);
+        })->orWhere(function ($query) use ($userId) {
+            $query->where('user_id', $userId)
+                  ->where('friend_id', $this->id);
+        })->first();
+
+        if (!$friendship) {
+            return null;
+        }
+
+        if ($friendship->status === 'accepted') {
+            return 'friends';
+        }
+
+        if ($friendship->user_id === $this->id) {
+            return 'request_sent';
+        }
+
+        return 'request_received';
+    }
 
     public function isInConversation($conversationId): bool
     {
