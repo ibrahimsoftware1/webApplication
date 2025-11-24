@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Chatting\ConversationController;
 use App\Http\Controllers\Api\Chatting\MessageController;
+use App\Http\Controllers\Api\FriendController;
 use App\Http\Controllers\Api\Social\FollowController;
 use App\Http\Controllers\Api\Social\PostController;
 use App\Http\Controllers\Api\UserController;
@@ -19,7 +20,7 @@ Broadcast::routes(['middleware' => ['auth:sanctum']]);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
         ->name('verification.verify');
-    Route::get('/email/resend', [AuthController::class, 'resendVerificationEmail']);
+    Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -51,6 +52,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/users/{id}/unban', 'unban');
             Route::post('/users/{id}/assign-role', 'assignRole');
             Route::delete('/users/{id}', 'deleteUser');
+            Route::post('/users/{id}/remove-from-community', 'removeUserFromCommunity');
+            Route::delete('/messages/{id}', 'deleteCommunityMessage');
 
         });
 });
@@ -60,6 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
        Route::controller(ConversationController::class)->group(function () {
 
            Route::get('/', 'index');
+           Route::get('/community-chat', 'getCommunityChat');
            Route::post('/', 'store');
            Route::get('/{conversation}', 'show');
            Route::put('/{conversation}', 'update');
@@ -68,6 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
            Route::delete('/{conversation}/participants/{user}', 'removeParticipant');
            Route::post('/{conversation}/read', 'markAsRead');
            Route::get('/{conversation}/messages', 'messages');
+           Route::post('/{conversation}/join', 'join');
        });
 });
 
@@ -105,6 +110,24 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('users')->group(function
         Route::post('/{user}/follow', 'follow');
         Route::delete('/{user}/unfollow', 'unfollow');
         Route::get('/{user}/followers', 'followers');
-        Route::get('/{user}/following', 'following');});
+        Route::get('/{user}/following', 'following');
+    });
+});
 
+// Community & Users routes
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    // Users (Community)
+    Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/{id}', [UserController::class, 'show']);
+
+    // Friends
+    Route::prefix('friends')->controller(FriendController::class)->group(function () {
+        Route::get('/', 'index'); // Get all friends
+        Route::get('/requests', 'requests'); // Get friend requests
+        Route::post('/request', 'sendRequest'); // Send friend request
+        Route::post('/accept/{id}', 'acceptRequest'); // Accept friend request
+        Route::post('/reject/{id}', 'rejectRequest'); // Reject friend request
+        Route::delete('/{id}', 'remove'); // Remove friend or cancel request
+        Route::get('/status/{userId}', 'checkStatus'); // Check friendship status
+    });
 });

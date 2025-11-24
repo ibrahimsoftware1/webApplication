@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Models\chatting\Conversation;
 use App\Traits\ApiResponse;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class AuthController extends Controller
 {
@@ -33,9 +36,15 @@ class AuthController extends Controller
             'avatar' => $request->avatar ? $request->file('avatar')->store('avatars', 'public') : null,
         ]);
 
-        $user->assignRole('user');
+        // Ensure 'user' role exists, create if it doesn't
+        $userRole = Role::firstOrCreate(['name' => 'user']);
+        
+        // Ensure 'create conversations' permission exists, create if it doesn't
+        $createConversationPermission = Permission::firstOrCreate(['name' => 'create conversations']);
 
-        $user->givePermissionTo('create conversations');
+        // Assign role and permission to user
+        $user->assignRole($userRole);
+        $user->givePermissionTo($createConversationPermission);
 
         event(new Registered($user));
 
@@ -59,6 +68,9 @@ class AuthController extends Controller
             $user->markAsOnline();
             broadcast(new OnlineStatusChanged($user,true))->toOthers();
 
+            // Ensure user is in community chat
+            $this->addUserToCommunityChat($user);
+
             return $this->success('Logged in successfully',
                 [
                     'user'=>new UserResource($user->load('roles','permissions')),
@@ -68,7 +80,7 @@ class AuthController extends Controller
 
         }
 
-        //Email verification
+        //Email verification (API)
     public function verifyEmail(Request $request ,$id , $hash){
 
         $user=User::findOrFail($id);
@@ -80,11 +92,65 @@ class AuthController extends Controller
             return $this->error('Email already verified',400);
         }
         if($user->markEmailAsVerified()){
-        event(new Verified($user));
+            event(new Verified($user));
+            
+            // Add user to community chat when email is verified
+            $this->addUserToCommunityChat($user);
         }
         return $this->success('Email verified successfully',
         ['verified'=>true]);
         }
+
+    // Add user to community chat
+    private function addUserToCommunityChat(User $user)
+    {
+        // Find or create the community chat
+        $communityChat = Conversation::where('name', 'Community Chat')
+            ->where('type', 'group')
+            ->first();
+
+        if (!$communityChat) {
+            // Create community chat if it doesn't exist
+            $communityChat = Conversation::create([
+                'type' => 'group',
+                'name' => 'Community Chat',
+                'description' => 'General community chat for everyone',
+                'created_by' => $user->id,
+            ]);
+        }
+
+        // Add user to community chat if not already in it
+        if (!$user->isInConversation($communityChat->id)) {
+            $communityChat->addParticipants([$user->id], false);
+        }
+    }
+
+        //Email verification (Web - redirects to frontend)
+    public function verifyEmailWeb(Request $request, $id, $hash)
+    {
+        $user = User::findOrFail($id);
+
+        // Use APP_URL from config (respects .env file)
+        $baseUrl = config('app.url', 'http://localhost');
+
+        if (!hash_equals($hash, sha1($user->getEmailForVerification()))) {
+            return redirect($baseUrl . '/chat-fixed.html?verify_error=1&message=' . urlencode('Invalid verification link'));
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return redirect($baseUrl . '/chat-fixed.html?verify_error=1&message=' . urlencode('Email already verified'));
+        }
+
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
+            
+            // Add user to community chat when email is verified
+            $this->addUserToCommunityChat($user);
+        }
+
+        // Redirect to frontend with success message
+        return redirect($baseUrl . '/chat-fixed.html?verify_success=1&id=' . $id . '&hash=' . $hash);
+    }
 
 
         //Resend verification email
