@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -30,13 +31,14 @@ class UserController extends Controller
         $request->validate([
             'name'=>'sometimes|string|max:255',
             'username'=>'sometimes|string|max:255',
-            'bio'=>'sometimes|string|max:255',
+            'bio'=>'sometimes|string|max:500',
+            'gender'=>'sometimes|in:male,female',
         ]);
         $user=$request->user();
-        $user->update($request->only('name','username','bio'));
+        $user->update($request->only('name','username','bio','gender'));
         $user->update(['profile_completed'=>true]);
 
-        return $this->success('Profile updated',new UserResource($user));
+        return $this->success('Profile updated',new UserResource($user->load('roles','permissions')));
 
     }
 
@@ -51,10 +53,16 @@ class UserController extends Controller
         }
 
         $path=$request->file('avatar')->store('avatars', 'public');
-        $user->update(['avatar'=>Storage::url($path)]);
+        $avatarUrl = Storage::url($path);
+        $user->update(['avatar'=>$avatarUrl]);
+        $user->refresh();
 
         return $this->success('Avatar updated successfully',
-            ['avatar_url'=>$user->avatar]);
+            [
+                'avatar_url'=>$avatarUrl,
+                'avatar'=>$avatarUrl,
+                'user'=>new UserResource($user->load('roles','permissions'))
+            ]);
     }
 
     public function removeAvatar(Request $request)
@@ -120,6 +128,49 @@ class UserController extends Controller
         $user->delete();
         return $this->success('Account deleted successfully');
 
+    }
+
+    // Get all users for community page
+    public function index(Request $request)
+    {
+        $currentUser = $request->user();
+        $search = $request->query('search');
+        $perPage = $request->query('per_page', 15);
+
+        $query = User::where('id', '!=', $currentUser->id)
+            ->whereNotNull('email_verified_at'); // Only show verified users
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->with('roles', 'permissions')
+            ->paginate($perPage);
+
+        // Add friendship status to each user
+        $users->getCollection()->transform(function ($user) use ($currentUser) {
+            $user->friendship_status = $currentUser->getFriendshipStatus($user->id);
+            return $user;
+        });
+
+        return $this->success('Users retrieved successfully', $users);
+    }
+
+    // Get user profile by ID
+    public function show(Request $request, $id)
+    {
+        $currentUser = $request->user();
+        $user = User::with('roles', 'permissions')->findOrFail($id);
+
+        // Add friendship status
+        $user->friendship_status = $currentUser->getFriendshipStatus($user->id);
+        $user->is_friend = $currentUser->isFriendWith($user->id);
+
+        return $this->success('User profile retrieved', new UserResource($user));
     }
 
 

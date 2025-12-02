@@ -15,7 +15,7 @@ class StoreMessageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'content' => ['required_without:attachments', 'nullable', 'string', 'max:5000'],
+            'content' => ['nullable', 'string', 'max:5000'],
             'type' => ['required', Rule::in(['text', 'image', 'file', 'audio', 'video'])],
             'attachments' => ['nullable', 'array', 'max:10'],
             'attachments.*' => ['file', 'max:10240'], // 10MB max per file

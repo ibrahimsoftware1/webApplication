@@ -30,6 +30,18 @@ class UserResource extends JsonResource
             'joined_at'=>$this->whenPivotLoaded('conversation_user',fn()=> $this->pivot->joined_at),
             'is_admin'=>$this->whenPivotLoaded('conversation_user',fn()=> $this->pivot->is_admin),
             'last_read_at'=>$this->whenPivotLoaded('conversation_user',fn()=> $this->pivot->last_read_at),
+            
+            'friendship_status'=>$this->when(isset($this->friendship_status), $this->friendship_status),
+            'is_friend'=>$this->when(isset($this->is_friend), $this->is_friend),
+            
+            'roles'=>$this->whenLoaded('roles', function() {
+                return $this->roles->pluck('name');
+            }),
+            'has_admin_role'=>$this->whenLoaded('roles', function() {
+                return $this->roles->contains('name', 'admin');
+            }),
+            'is_verified'=>$this->is_verified,
+            'verified_at'=>$this->verified_at?->toISOString(),
 
 
         ];

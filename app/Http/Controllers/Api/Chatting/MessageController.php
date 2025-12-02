@@ -12,8 +12,10 @@ use App\Http\Requests\Message\StoreMessageRequest;
 use App\Http\Resources\MessageResource;
 use App\Models\chatting\Conversation;
 use App\Models\chatting\Message;
+use App\Models\chatting\MessageAttachment;
 use App\Traits\ApiResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
@@ -21,26 +23,67 @@ class MessageController extends Controller
 
     //send a message
     public function store(StoreMessageRequest $request , Conversation $conversation){
+        $user = auth()->user();
 
-        if(!auth()->user()->isInConversation($conversation->id)){
-            return $this->error('You are not a participant in this conversation',403);
+        // Auto-join community chat if user is not in it
+        if (!$user->isInConversation($conversation->id)) {
+            // Allow access to community chat (group conversation named "Community Chat")
+            if ($conversation->isGroup() && $conversation->name === 'Community Chat') {
+                $conversation->addParticipants([$user->id], false);
+            } else {
+                return $this->error('You are not a participant in this conversation',403);
+            }
         }
         DB::beginTransaction();
         try {
+            // Determine message type based on attachments
+            $messageType = $request->type ?? 'text';
+            if ($request->hasFile('attachments') && count($request->file('attachments')) > 0) {
+                $firstFile = $request->file('attachments')[0];
+                $mimeType = $firstFile->getMimeType();
+                if (str_starts_with($mimeType, 'image/')) {
+                    $messageType = 'image';
+                } elseif (str_starts_with($mimeType, 'video/')) {
+                    $messageType = 'video';
+                } elseif (str_starts_with($mimeType, 'audio/')) {
+                    $messageType = 'audio';
+                } else {
+                    $messageType = 'file';
+                }
+            }
+
             $message=$conversation->messages()->create([
                 'user_id'=>auth()->id(),
-                'content'=>$request->input('content'),
-                'type'=>$request->type ?? 'text',
+                'content'=>$request->input('content') ?? '',
+                'type'=>$messageType,
                 'metadata'=>$request->metadata,
             ]);
 
+            // Handle attachments
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('message-attachments', 'public');
+                    $fileUrl = Storage::url($path);
+                    
+                    MessageAttachment::create([
+                        'message_id' => $message->id,
+                        'user_id' => auth()->id(),
+                        'file_name' => $file->getClientOriginalName(),
+                        'file_path' => $path,
+                        'file_type' => $file->getMimeType(),
+                        'file_size' => $file->getSize(),
+                        'file_url' => $fileUrl,
+                    ]);
+                }
+            }
+
             // Fire the event directly - ShouldBroadcastNow will handle immediate broadcasting
-            event(new MessageSent($message));
+            event(new MessageSent($message->load('user', 'attachments')));
 
             DB::commit();
 
             return $this->success('Message sent successfully',
-                new MessageResource($message->load('user')),201);
+                new MessageResource($message->load('user', 'attachments')),201);
 
         }catch (\Exception $e){
             DB::rollBack();
